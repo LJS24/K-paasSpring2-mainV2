@@ -1,7 +1,25 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="kopo.poly.util.CmmUtil" %>
+<%@ page import="kopo.poly.dto.UserDTO" %>
 <%
-    String ssUserId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID")); // 로그인된 회원 아이디
+    // 세션에서 SS_USER_ID 속성을 가져옴 (로그인 여부 확인)
+    String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
+    String msg = "";
+
+    // 비정상적인 접근 체크: SS_USER_ID가 세션에 없거나 빈 값인 경우
+    if (userId == null || userId.length() == 0) {
+        // 경고 메시지 설정
+        msg = "비정상적인 접근입니다. 화면에 접근할 수 없습니다.";
+
+        // 경고 메시지를 alert로 출력하고 로그인 페이지로 리다이렉트
+%>
+<script>
+    alert("<%= msg %>");
+    window.location.href = "/title/login";
+</script>
+<%
+        return; // 이후 코드 실행 방지
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +42,39 @@
 
     <!-- Custom styles for this template-->
     <link href="/css/sb-admin-2.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+
+        // HTML로딩이 완료되고, 실행됨
+        $(document).ready(function () {
+
+            $("#profile").on("click",function () {  // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
+                location.href = "/title/profile1";
+            })
+
+
+            $("#bthLogout").on("click", function () {
+
+
+                $.ajax({
+                    url: "/title/logout",
+                    type: "post",   // 전송방식은 Post
+                    dataType: "json", // 전송 결과는 JSON으로 받기
+                    success: function (json) { // 호출이 성공했다면..
+                        if (json.result === 1) {   // 로그아웃 성공
+                            alert(json.msg);   // 메시지 띄우기
+                            location.href = "login"; // 로그아웃 후 로그인 페이지로 이동
+                        } else {   // 로그아웃 실패
+                            alert(json.msg); // 메시지 띄우기
+                        }
+                    },
+                    error: function () {  // 예외 처리 (네트워크 오류나 서버 응답 실패 등)
+                        alert("로그아웃 처리에 실패했습니다.");
+                    }
+                });
+            })
+        })
+    </script>
 
 
 
@@ -82,10 +133,7 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-<!--            <div class="sidebar-heading">-->
-<!--                Addons-->
-<!--            </div>-->
+
 
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
@@ -103,7 +151,7 @@
             <hr class="sidebar-divider">
             <!-- Nav Item - Tables -->
             <li class="nav-item">
-                <a class="nav-link" href="/title/login">
+                <a class="nav-link" id="bthLogout" style="cursor: pointer">
 <!--                    <i class="fas fa-fw fa-table"></i>-->
                     <span>로그아웃</span></a>
             </li>
@@ -130,19 +178,7 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Topbar Search -->
-<!--                    <form-->
-<!--                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">-->
-<!--                        <div class="input-group">-->
-<!--                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."-->
-<!--                                aria-label="Search" aria-describedby="basic-addon2">-->
-<!--                            <div class="input-group-append">-->
-<!--                                <button class="btn btn-primary" type="button">-->
-<!--                                    <i class="fas fa-search fa-sm"></i>-->
-<!--                                </button>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </form>-->
+
 
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
@@ -172,21 +208,20 @@
                         </li>
 
 
-
                         <div class="topbar-divider d-none d-sm-block"></div>
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%=ssUserId%></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%=userId%></span>
                                 </img class="img-profile rounded-circle"
                                     src="img/undraw_profile.svg">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" id="profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Profile
                                 </a>
@@ -216,19 +251,9 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-">
-                        <!-- Begin Page Content -->
-                        <div class="container-fluid">
-
-                            <!-- Page Heading -->
-                            <div class="d-flex justify-content-center align-items-center" style="height: 300px;">
-                                <a href="title/index">
-                                    <img src="/img/logo1roatate.png" alt="Clickable Image" style="width:200px; height:200px;">
-                                </a>
-                            </div>
-
-                        </div>
-                        <!-- End of Main Content -->
-
+                        <h1 class="h3 mb-0 text-gray-800">MAIN PAGE</h1>
+<!--                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i-->
+<!--                                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>-->
                     </div>
 
                     <!-- Content Row -->
